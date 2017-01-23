@@ -40,7 +40,8 @@ public class Main {
         Lion lion = new LionBuilder().ferretConfiguration(fc).workDir(".").build();
 
         Properties props = new Properties();
-        props.put("telegesis.serial.device", "/dev/tty.SLAB_USBtoUART");
+        //props.put("telegesis.serial.device", "/dev/tty.SLAB_USBtoUART");
+        props.put("telegesis.serial.device", "/dev/ttyUSB0");
         props.put("telegesis.serial.baud", "115200");
         HornetProperties hp = new HornetProperties(props);
 
