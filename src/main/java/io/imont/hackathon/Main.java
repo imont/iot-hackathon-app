@@ -14,36 +14,25 @@ import io.imont.mole.MoleClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class Main {
 
+    private static final Map<String, String> qnapIdMap = new HashMap<>();
+
+    static {
+        qnapIdMap.put("000D6F0004B63317", "CONTACT");
+        qnapIdMap.put("000D6F0004B645C9", "MOTION");
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws Exception {
-//        MQTT mqtt = new MQTT();
-//        mqtt.setHost("192.168.55.13", 1883);
-//        mqtt.setClientId("CHIP");
-//        mqtt.setUserName("594a1c9a-d8f4-4710-834c-6f08277707d7");
-//        mqtt.setPassword("r:f5429dd18cc941e97e41a05a2af8f361");
-//
-//        BlockingConnection conn = mqtt.blockingConnection();
-//        conn.connect();
-//        System.out.println("Connected");
-//
-//        Random rnd = new Random();
+    private static QNAPClient qnapClient;
 
-//        while (true) {
-//            int temp = rnd.nextInt(100);
-//
-//            String telemetry = String.format("{\"value\":%d}", temp);
-//            String motionTelemetry = String.format("{\"value\":%b}", temp % 2 == 0);
-//            conn.publish("qiot/things/admin/CHIP/temp_room1", telemetry.getBytes(), QoS.AT_LEAST_ONCE, false);
-//            conn.publish("qiot/things/admin/CHIP/motion_room1", motionTelemetry.getBytes(), QoS.AT_LEAST_ONCE, false);
-//            System.out.println("SENT " + telemetry);
-//            System.out.println("SENT " + motionTelemetry);
-//            Thread.sleep(2000);
-//        }
+    public static void main(String[] args) throws Exception {
+        qnapClient = new QNAPClient();
 
         FerretConfiguration fc = new FerretConfiguration();
         fc.setFriendlyName("Hackathon");
@@ -63,9 +52,9 @@ public class Main {
         printDevices(lion.getMole());
         subscribeToEvents(lion.getMole());
 
-        String localPeerId = lion.getMole().getLocalPeerId();
+        //String localPeerId = lion.getMole().getLocalPeerId();
 
-        lion.discover(localPeerId).subscribe(discoveredDevice -> System.out.println("Found device: " + discoveredDevice));
+        //lion.discover(localPeerId).subscribe(discoveredDevice -> System.out.println("Found device: " + discoveredDevice));
     }
 
     private static void printDevices(MoleClient mole) throws Exception {
@@ -77,7 +66,23 @@ public class Main {
 
     private static void subscribeToEvents(MoleClient mole) {
         mole.subscribeToEvents(event -> {
-            logger.info("Got event from {}, key={}, value={}", event.getEntityId(), event.getKey(), event.getValue());
+            String qnapName = qnapIdMap.get(event.getEntityId());
+            if (qnapName != null) {
+                logger.info("Got event from {}, key={}, value={}", event.getEntityId(), event.getKey(), event.getValue());
+                if (event.getKey().contains("MOTION")) {
+                    long time = System.currentTimeMillis() / 1000;
+                    qnapClient.publish(String.format("%s_DETECTED", qnapName),
+                            String.format("{\"value\": %d}", time));
+                } else if (event.getKey().contains("TEMPERATURE")) {
+                    qnapClient.publish(String.format("%s_TEMPERATURE", qnapName),
+                            String.format("{\"value\": %f}", Float.parseFloat(event.getValue())));
+                } else if (event.getKey().contains("OPEN_CLOSED")) {
+                    boolean status = event.getValue().equals("OPEN");
+                    qnapClient.publish(String.format("%s_STATUS", qnapName),
+                            String.format("{\"value\": %b}", status));
+                }
+            }
+
         });
     }
 
