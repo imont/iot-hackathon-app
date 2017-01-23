@@ -1,0 +1,22 @@
+<configuration>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%15.15t{14}] %-5.5level{10} %-40.40logger{39} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.imont.hornet" level="DEBUG" />
+    <logger name="io.imont.ferret" level="ERROR" />
+    <logger name="js.drv" level="DEBUG" />
+    <logger name="org.ice4j" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

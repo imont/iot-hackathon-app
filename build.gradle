@@ -1,0 +1,30 @@
+group 'io.imont.hackathon'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        credentials {
+            username imontRepoUser
+            password imontRepoPassword
+        }
+        url "https://repo.imont.io/repository/imont-public/"
+    }
+}
+
+dependencies {
+    compile 'org.fusesource.mqtt-client:mqtt-client:1.12'
+
+    compile 'io.imont.lion:lion-client:0.1-alpha'
+    compile 'io.imont.hornet:hornet-basic-drivers:0.2.3-SNAPSHOT'
+    compile 'io.imont.hornet:hornet-lion-zigbee-network:0.2.3-SNAPSHOT'
+    compile "ch.qos.logback:logback-classic:1.+"
+    compile 'org.xerial:sqlite-jdbc-rpi:3.8.11.2'
+
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
